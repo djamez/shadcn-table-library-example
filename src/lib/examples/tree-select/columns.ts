@@ -22,13 +22,17 @@ export const columns: ColumnDef<V9Features, OrgNode>[] = [
         onchange: (value) => table.toggleAllRowsSelected(value),
         label: 'Select all rows',
       }),
-    cell: ({ row }) =>
-      renderComponent(SelectCheckbox, {
-        checked: row.getIsSelected(),
-        indeterminate: !row.getIsSelected() && row.getIsSomeSelected(),
+    cell: ({ row }) => {
+      // v9 only reports a row itself as selected; a parent is also checked
+      // when every selectable descendant is
+      const checked = row.getIsSelected() || row.getIsAllSubRowsSelected()
+      return renderComponent(SelectCheckbox, {
+        checked,
+        indeterminate: !checked && row.getIsSomeSelected(),
         onchange: (value) => row.toggleSelected(value),
         label: 'Select row',
-      }),
+      })
+    },
     enableSorting: false,
   },
   {

@@ -41,6 +41,8 @@
   // svelte-ignore state_referenced_locally
   let columnOrder = $state<string[]>(defaultOrder())
   let columnSizing = $state<Record<string, number>>({})
+  // SortableJS moves header cells itself; a new key rebuilds the row
+  let renderKey = $state(0)
   let isHydrated = false
 
   // Restore the saved layout after mount, then persist every change
@@ -95,6 +97,7 @@
   // TanStack's columnOrder state drives the new layout.
   function moveColumn(oldIndex: number, newIndex: number) {
     columnOrder = arrayMove(columnOrder, oldIndex, newIndex)
+    renderKey += 1
   }
 
   function resetLayout() {
@@ -117,41 +120,43 @@
     <Table.Root style="width: {table.getTotalSize()}px">
       <Table.Header>
         {#each table.getHeaderGroups() as headerGroup (headerGroup.id)}
-          <Table.Row
-            {@attach sortable({ onMove: moveColumn, direction: 'horizontal' })}
-          >
-            {#each headerGroup.headers as header (header.id)}
-              <Table.Head
-                class="select-none"
-                style="width: {header.getSize()}px; position: relative"
-              >
-                <div class="flex items-center gap-1.5 pr-2">
-                  <button
-                    type="button"
-                    data-drag-handle
-                    class="cursor-grab text-muted-foreground active:cursor-grabbing"
-                    aria-label="Reorder column"
-                  >
-                    <GripVertical class="h-3.5 w-3.5" />
-                  </button>
-                  <span>
-                    {#if !header.isPlaceholder}
-                      <FlexRender {header} />
-                    {/if}
-                  </span>
-                </div>
-                <!-- svelte-ignore a11y_no_static_element_interactions -->
-                <div
-                  class={cn(
-                    'absolute top-0 right-0 h-full w-1 cursor-col-resize touch-none bg-border opacity-0 select-none hover:opacity-100',
-                    header.column.getIsResizing() && 'bg-primary opacity-100',
-                  )}
-                  onmousedown={header.getResizeHandler()}
-                  ontouchstart={header.getResizeHandler()}
-                ></div>
-              </Table.Head>
-            {/each}
-          </Table.Row>
+          {#key renderKey}
+            <Table.Row
+              {@attach sortable({ onMove: moveColumn, direction: 'horizontal' })}
+            >
+              {#each headerGroup.headers as header (header.id)}
+                <Table.Head
+                  class="select-none"
+                  style="width: {header.getSize()}px; position: relative"
+                >
+                  <div class="flex items-center gap-1.5 pr-2">
+                    <button
+                      type="button"
+                      data-drag-handle
+                      class="cursor-grab text-muted-foreground active:cursor-grabbing"
+                      aria-label="Reorder column"
+                    >
+                      <GripVertical class="h-3.5 w-3.5" />
+                    </button>
+                    <span>
+                      {#if !header.isPlaceholder}
+                        <FlexRender {header} />
+                      {/if}
+                    </span>
+                  </div>
+                  <!-- svelte-ignore a11y_no_static_element_interactions -->
+                  <div
+                    class={cn(
+                      'absolute top-0 right-0 h-full w-1 cursor-col-resize touch-none bg-border opacity-0 select-none hover:opacity-100',
+                      header.column.getIsResizing() && 'bg-primary opacity-100',
+                    )}
+                    onmousedown={header.getResizeHandler()}
+                    ontouchstart={header.getResizeHandler()}
+                  ></div>
+                </Table.Head>
+              {/each}
+            </Table.Row>
+          {/key}
         {/each}
       </Table.Header>
       <Table.Body>

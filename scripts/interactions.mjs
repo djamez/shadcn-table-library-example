@@ -78,6 +78,79 @@ check(
   (await page.locator('tbody').textContent())?.includes('42'),
 )
 
+// reorder: dragging a row twice keeps both drops
+await page.goto(`${BASE}/reorder`, { waitUntil: 'networkidle' })
+const firstTitle = () =>
+  page.locator('tbody tr').first().locator('td').nth(1).textContent()
+const reorderStart = await firstTitle()
+await page.getByLabel('Reorder row').first().dragTo(page.locator('tbody tr').nth(3))
+await page.waitForTimeout(600)
+const reorderOne = await firstTitle()
+await page.getByLabel('Reorder row').first().dragTo(page.locator('tbody tr').last())
+await page.waitForTimeout(600)
+check(
+  'reorder keeps consecutive drops',
+  reorderStart !== reorderOne && reorderOne !== (await firstTitle()),
+  `${reorderStart} -> ${reorderOne} -> ${await firstTitle()}`,
+)
+
+// tree reorder: siblings swap and the tree stays expanded
+await page.goto(`${BASE}/tree-reorder`, { waitUntil: 'networkidle' })
+const treeRows = () =>
+  page.locator('tbody tr').evaluateAll((rows) =>
+    rows.map((row) => row.querySelectorAll('td')[1]?.textContent.trim()),
+  )
+await page
+  .locator('tbody tr', { hasText: 'Sofia Patel' })
+  .getByLabel('Reorder row')
+  .dragTo(page.locator('tbody tr', { hasText: 'Noah Garcia' }))
+await page.waitForTimeout(800)
+const afterTree = await treeRows()
+check(
+  'tree reorder swaps siblings and stays expanded',
+  afterTree.length > 5 &&
+    afterTree.indexOf('Noah Garcia') < afterTree.indexOf('Sofia Patel'),
+  afterTree.join(', '),
+)
+
+// column reorder: the first header moves to the end
+await page.goto(`${BASE}/resizable-reorder`, { waitUntil: 'networkidle' })
+const headers = () =>
+  page.locator('thead th').evaluateAll((cells) =>
+    cells.map((cell) => cell.textContent.replace(/\s+/g, ' ').trim()),
+  )
+const headersBefore = await headers()
+await page
+  .getByLabel('Reorder column')
+  .first()
+  .dragTo(page.locator('thead th').nth(3))
+await page.waitForTimeout(800)
+const headersAfter = await headers()
+check(
+  'column reorder moves the header',
+  headersBefore[0] !== headersAfter[0] && headersAfter.includes(headersBefore[0]),
+  `${headersBefore.slice(0, 3).join('/')} -> ${headersAfter.slice(0, 3).join('/')}`,
+)
+
+// tree selection: checking every leaf checks the parent
+await page.goto(`${BASE}/tree-select`, { waitUntil: 'networkidle' })
+const checkboxAt = (name) =>
+  page.locator('tbody tr', { hasText: name }).first().getByRole('checkbox')
+await checkboxAt('Sofia Patel').click()
+await checkboxAt('Noah Garcia').click()
+await page.waitForTimeout(250)
+const backendChecked =
+  (await checkboxAt('Backend').getAttribute('aria-checked')) === 'true'
+await checkboxAt('Noah Garcia').click()
+await page.waitForTimeout(250)
+const backendIndeterminate =
+  (await checkboxAt('Backend').getAttribute('aria-checked')) === 'mixed'
+check(
+  'tree selection derives parent state from leaves',
+  backendChecked && backendIndeterminate,
+  `checked=${backendChecked} indeterminate=${backendIndeterminate}`,
+)
+
 // column pinning: the pin button switches the column to a sticky position
 await page.goto(`${BASE}/column-pinning`, { waitUntil: 'networkidle' })
 const pinButton = page.getByLabel(/Pin Email column/).first()
