@@ -78,6 +78,10 @@ scripts/
 - **Server** — SSR pagination, SSR filtering, SSR sort + filter + pagination
 - **Export** — Export Configuration, Export Selected, Density & Export
 - **Production Dashboard** — progress bars, conditional rules and sparklines
+- **Previously v8-only** — Anomaly Investigation (metrics and finance),
+  Change Review, Cohort Retention, CRM Employees, CRM Employees (multi-filter),
+  CSV Import, Draft Rows, Empty / Error / Loading states, File Browser,
+  Job Queue, Permissions Matrix, Schedule Matrix, Split Detail
 
 ## v9 notes worth knowing
 

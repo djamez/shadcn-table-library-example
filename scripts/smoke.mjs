@@ -37,6 +37,21 @@ const routes = [
   'tree-reorder',
   'tree-select',
   'utility',
+  'anomaly-investigation',
+  'change-review',
+  'cohort-retention',
+  'crm-employees',
+  'crm-employees-multi',
+  'csv-import',
+  'draft-rows',
+  'empty-state',
+  'error-state',
+  'file-browser',
+  'job-queue',
+  'loading-state',
+  'permissions-matrix',
+  'schedule-matrix',
+  'split-detail',
 ]
 
 const browser = await chromium.launch()
@@ -57,8 +72,10 @@ for (const route of routes) {
   const status = response?.status()
   const rows = await page.locator('tbody tr').count()
   const isGallery = route === ''
+  // These examples intentionally start with no rows
+  const mayBeEmpty = ['empty-state', 'error-state', 'loading-state'].includes(route)
 
-  if (status !== 200 || (!isGallery && rows === 0) || problems.length > 0) {
+  if (status !== 200 || (!isGallery && !mayBeEmpty && rows === 0) || problems.length > 0) {
     failures += 1
     console.log(
       `FAIL /${route} status=${status} rows=${rows}\n  ${problems.join('\n  ')}`,

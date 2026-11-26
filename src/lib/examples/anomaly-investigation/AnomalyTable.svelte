@@ -1,0 +1,134 @@
+<script lang="ts">
+  import { tick } from 'svelte'
+  import {
+    FlexRender,
+    createTable,
+    type ExpandedState,
+    type SortingState,
+  } from '@tanstack/svelte-table'
+  import { v9Features } from '$lib/table-v9-features'
+  import * as Table from '$lib/components/ui/table/index.js'
+  import { cn } from '$lib/utils.js'
+  import { columns } from './columns'
+  import type { Metric } from './data'
+  import MetricDetails from './MetricDetails.svelte'
+  import type { AnomalyMeta } from './styles'
+
+  let { metrics, meta }: { metrics: Metric[]; meta: AnomalyMeta } = $props()
+
+  let sorting = $state.raw<SortingState>([{ id: 'change', desc: true }])
+  let expanded = $state.raw<ExpandedState>({})
+  let frame = $state<HTMLElement>()
+
+  // Secondary columns step aside on small screens
+  const responsive: Record<string, string> = {
+    range: 'hidden md:table-cell',
+    change: 'hidden sm:table-cell',
+    kind: 'hidden sm:table-cell',
+    // The two button columns give up their inner padding on phones
+    expand: 'pr-0 sm:pr-2',
+    review: 'pl-0 sm:pl-2',
+  }
+
+  /**
+   * When reviewed rows are hidden, the row leaves under the pointer: move
+   * focus to the next row's review button (or its expand button if it's in
+   * range) instead of letting it vanish.
+   */
+  async function toggleReviewed(id: string) {
+    const ids = table.getRowModel().rows.map((r) => r.original.id)
+    const i = ids.indexOf(id)
+    const next = ids.at(i + 1) ?? ids.at(i - 1)
+    meta.toggleReviewed(id)
+    await tick()
+    if (!next || frame?.contains(document.activeElement)) return
+    const row = frame?.querySelector(`[data-metric="${next}"]`)
+    ;(
+      row?.querySelector<HTMLElement>('[aria-pressed]') ??
+      row?.querySelector<HTMLElement>('button')
+    )?.focus()
+  }
+
+  const table = createTable({
+    features: v9Features,
+    get data() {
+      return metrics
+    },
+    columns,
+    getRowId: (m) => m.id,
+    // Every metric has a history to show
+    getRowCanExpand: () => true,
+    state: {
+      get sorting() {
+        return sorting
+      },
+      get expanded() {
+        return expanded
+      },
+    },
+    onSortingChange: (u) => {
+      sorting = typeof u === 'function' ? u(sorting) : u
+    },
+    onExpandedChange: (u) => {
+      expanded = typeof u === 'function' ? u(expanded) : u
+    },
+    get meta(): AnomalyMeta {
+      return { ...meta, toggleReviewed }
+    },
+  })
+</script>
+
+<div bind:this={frame} class="overflow-hidden rounded-md border">
+  <Table.Root>
+    <Table.Header>
+      {#each table.getHeaderGroups() as group (group.id)}
+        <Table.Row class="hover:bg-transparent">
+          {#each group.headers as header (header.id)}
+            <Table.Head
+              class={cn(
+                responsive[header.column.id],
+                header.column.id === 'expand' && 'w-10',
+              )}
+            >
+              <FlexRender {header} />
+            </Table.Head>
+          {/each}
+        </Table.Row>
+      {/each}
+    </Table.Header>
+    <Table.Body>
+      {#each table.getRowModel().rows as row (row.id)}
+        <Table.Row
+          data-metric={row.original.id}
+          class={cn(
+            row.getIsExpanded() && 'border-b-0',
+            meta.reviewed.has(row.original.id) && 'text-muted-foreground',
+          )}
+        >
+          {#each row.getVisibleCells() as cell (cell.id)}
+            <Table.Cell class={responsive[cell.column.id]}>
+              <FlexRender {cell} />
+            </Table.Cell>
+          {/each}
+        </Table.Row>
+        {#if row.getIsExpanded()}
+          <Table.Row class="bg-muted/30 hover:bg-muted/30">
+            <Table.Cell />
+            <Table.Cell colspan={columns.length - 1} class="py-4">
+              <MetricDetails metric={row.original} />
+            </Table.Cell>
+          </Table.Row>
+        {/if}
+      {:else}
+        <Table.Row class="hover:bg-transparent">
+          <Table.Cell
+            colspan={columns.length}
+            class="h-32 text-center text-muted-foreground"
+          >
+            Nothing to investigate here.
+          </Table.Cell>
+        </Table.Row>
+      {/each}
+    </Table.Body>
+  </Table.Root>
+</div>

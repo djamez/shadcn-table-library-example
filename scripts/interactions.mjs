@@ -182,6 +182,52 @@ check(
   `${filteredRows.length} rows`,
 )
 
+// empty state: loading invoices and emptying the table
+await page.goto(`${BASE}/empty-state`, { waitUntil: 'networkidle' })
+await page.getByRole('button', { name: 'Load invoices' }).click()
+await page.waitForTimeout(200)
+const loadedRows = await rows()
+await page.getByRole('button', { name: 'Empty the table' }).click()
+await page.waitForTimeout(200)
+check(
+  'empty state loads and empties',
+  loadedRows > 0 && (await rows()) === 1,
+  `${loadedRows} then ${await rows()} (message row)`,
+)
+
+// permissions matrix: toggling a grant marks the matrix changed
+await page.goto(`${BASE}/permissions-matrix`, { waitUntil: 'networkidle' })
+const grant = page.locator('tbody tr').first().getByRole('checkbox').first()
+const grantBefore = await grant.getAttribute('aria-checked')
+await grant.click()
+await page.waitForTimeout(200)
+check(
+  'permissions matrix toggles a grant',
+  (await grant.getAttribute('aria-checked')) !== grantBefore,
+  `${grantBefore} -> ${await grant.getAttribute('aria-checked')}`,
+)
+
+// file browser: opening a folder changes the breadcrumb
+await page.goto(`${BASE}/file-browser`, { waitUntil: 'networkidle' })
+const crumbs = page.getByLabel('Folder path')
+const crumbBefore = await crumbs.textContent()
+const folder = page
+  .locator('tbody tr')
+  .first()
+  .locator('td')
+  .nth(1)
+  .locator('button')
+  .first()
+if (await folder.count()) {
+  await folder.click()
+  await page.waitForTimeout(200)
+}
+check(
+  'file browser opens a folder',
+  (await crumbs.textContent()) !== crumbBefore,
+  `${crumbBefore?.trim()} -> ${(await crumbs.textContent())?.trim()}`,
+)
+
 // column pinning: the pin button switches the column to a sticky position
 await page.goto(`${BASE}/column-pinning`, { waitUntil: 'networkidle' })
 const pinButton = page.getByLabel(/Pin Email column/).first()
