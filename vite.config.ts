@@ -16,6 +16,8 @@ export default defineConfig({
     sveltekit({
       preprocess: vitePreprocess(),
       adapter: adapter(),
+      experimental: { remoteFunctions: true },
+      compilerOptions: { experimental: { async: true } },
     }),
   ],
 })

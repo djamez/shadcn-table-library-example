@@ -1,0 +1,40 @@
+export interface Example {
+  slug: string
+  title: string
+}
+
+export const examples: Example[] = [
+  { slug: 'animated-icons', title: 'Animated icons' },
+  { slug: 'async-actions', title: 'Async row actions' },
+  { slug: 'basic', title: 'Data table' },
+  { slug: 'column-pinning', title: 'Column pinning' },
+  { slug: 'comparison', title: 'Comparison' },
+  { slug: 'conditional-formatting', title: 'Conditional formatting' },
+  { slug: 'deployments', title: 'Deployments' },
+  { slug: 'editable', title: 'Editable' },
+  { slug: 'export-config', title: 'Export configuration' },
+  { slug: 'export-selected', title: 'Export selected' },
+  { slug: 'filter-state-shape', title: 'Filter state shape' },
+  { slug: 'filter-toolbar', title: 'Toolbar filter' },
+  { slug: 'grouped', title: 'Grouped' },
+  { slug: 'heatmap', title: 'Heatmap' },
+  { slug: 'infinite-scroll', title: 'Infinite scroll' },
+  { slug: 'inventory-allocation', title: 'Inventory allocation' },
+  { slug: 'kpi', title: 'Summary / KPI' },
+  { slug: 'live-status', title: 'Live status' },
+  { slug: 'logs', title: 'Logs' },
+  { slug: 'master-detail', title: 'Master detail' },
+  { slug: 'mobile-cards', title: 'Mobile cards' },
+  { slug: 'params-filter', title: 'Params filter' },
+  { slug: 'pivot', title: 'Pivot' },
+  { slug: 'production-dashboard', title: 'Production dashboard' },
+  { slug: 'reorder', title: 'Reorder' },
+  { slug: 'resizable-reorder', title: 'Resizable / reorder' },
+  { slug: 'spreadsheet', title: 'Spreadsheet' },
+  { slug: 'ssr', title: 'SSR' },
+  { slug: 'toolbar-filter', title: 'Filter toolbar' },
+  { slug: 'tree', title: 'Tree table' },
+  { slug: 'tree-reorder', title: 'Tree reorder' },
+  { slug: 'tree-select', title: 'Tree selection' },
+  { slug: 'utility', title: 'Utility' },
+]

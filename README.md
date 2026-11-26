@@ -54,6 +54,7 @@ src/
     components/ui/            shadcn-svelte primitives + shared icon components
     examples/<example>/       one folder per example, same file layout as the
                               library's Svelte ports (demo, table, columns, cells)
+    examples.remote.ts        prerender() catalog query for the shell/gallery
   routes/
     +layout.svelte            docs-style shell with a sidebar
     +page.svelte              gallery of all examples
@@ -96,9 +97,17 @@ scripts/
 - **Filter toolbar meta is per table.** v9 has no global `ColumnMeta`
   augmentation, so that example registers `columnMeta: metaHelper<…>()` on its
   own features object.
-- **SSR examples simulate the server** with an async fetcher and keep state in
-  the URL, so they run without a backend. `useUrlSearch` uses the History API;
-  in a real SvelteKit app, read `page.url.searchParams` and call `goto` instead.
+- **SSR examples use remote functions.** Each table calls a `query` from
+  `src/lib/examples/ssr/queries.remote.ts` with its URL state, so filtering,
+  sorting and slicing run on the server and the first page is rendered during
+  SSR. Remote functions are enabled with `experimental.remoteFunctions` and
+  `compilerOptions.experimental.async` in `vite.config.ts`. Route titles come
+  from a `prerender` remote function (`src/lib/examples.remote.ts`) — there are
+  no `+page.ts` loaders.
+- **URL state is namespaced per table** (`?pagination.page=1`,
+  `?filter.role=Viewer`) because three SSR examples share one route. The
+  `useUrlSearch` helper uses the History API; in a real app, read
+  `page.url.searchParams` and call `goto` instead.
 - **`$lib` alias.** SvelteKit 3 renamed its built-in alias to `#lib`. The ports
   and shadcn-svelte components still use `$lib`, so `vite.config.ts` maps it to
   `src/lib` via Vite's `resolve.alias`.

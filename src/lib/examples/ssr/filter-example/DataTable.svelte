@@ -17,8 +17,7 @@
   import * as Table from '$lib/components/ui/table/index.js'
   import { Button } from '$lib/components/ui/button/index.js'
   import * as Select from '$lib/components/ui/select/index.js'
-  import { getUserPageWithFilter } from '../data'
-  import { useServerQuery } from '../useServerQuery.svelte'
+  import { getUserPageWithFilter } from '../queries.remote'
   import { useUrlSearch } from '../useUrlSearch.svelte'
   import type { User } from './columns'
 
@@ -28,12 +27,17 @@
 
   // The URL is the source of truth: page and pageSize live in the query string,
   // not in component state, so a bookmark or refresh reproduces the same view.
-  const { search, navigate } = useUrlSearch({ page: 0, pageSize: 10, role: '' })
+  const { search, navigate } = useUrlSearch(
+    { page: 0, pageSize: 10, role: '' },
+    'filter',
+  )
 
-  const query = useServerQuery(
-    () => ({ page: search.page, pageSize: search.pageSize, role: search.role }),
-    getUserPageWithFilter,
-    { rows: [], pageCount: 0 },
+  const response = $derived(
+    await getUserPageWithFilter({
+      page: search.page,
+      pageSize: search.pageSize,
+      role: search.role,
+    }),
   )
 
   let sorting = $state<SortingState>([])
@@ -41,13 +45,13 @@
   const table = createTable({
     features: v9Features,
     get data() {
-      return query.result.rows
+      return response.rows
     },
     get columns() {
       return columns
     },
     get pageCount() {
-      return query.result.pageCount
+      return response.pageCount
     },
     manualPagination: true,
     state: {
@@ -91,7 +95,7 @@
       </Select.Content>
     </Select.Root>
   <div
-    class={cn('overflow-hidden rounded-md border transition-opacity', query.isPending && 'opacity-50')}
+    class="overflow-hidden rounded-md border"
   >
     <Table.Root>
       <Table.Header>
@@ -154,16 +158,36 @@
   </div>
 
   <div class="mt-5 flex justify-end gap-1">
-    <Button variant="outline" disabled={!table.getCanPreviousPage()} onclick={() => table.firstPage()}>
+    <Button
+      variant="outline"
+      aria-label="First page"
+      disabled={!table.getCanPreviousPage()}
+      onclick={() => table.firstPage()}
+    >
       <ChevronsLeft class="h-3 w-3" />
     </Button>
-    <Button variant="outline" disabled={!table.getCanPreviousPage()} onclick={() => table.previousPage()}>
+    <Button
+      variant="outline"
+      aria-label="Previous page"
+      disabled={!table.getCanPreviousPage()}
+      onclick={() => table.previousPage()}
+    >
       <ChevronLeft class="h-3 w-3" />
     </Button>
-    <Button variant="outline" disabled={!table.getCanNextPage()} onclick={() => table.nextPage()}>
+    <Button
+      variant="outline"
+      aria-label="Next page"
+      disabled={!table.getCanNextPage()}
+      onclick={() => table.nextPage()}
+    >
       <ChevronRight class="h-3 w-3" />
     </Button>
-    <Button variant="outline" disabled={!table.getCanNextPage()} onclick={() => table.lastPage()}>
+    <Button
+      variant="outline"
+      aria-label="Last page"
+      disabled={!table.getCanNextPage()}
+      onclick={() => table.lastPage()}
+    >
       <ChevronsRight class="h-3 w-3" />
     </Button>
     <Select.Root

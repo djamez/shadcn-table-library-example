@@ -17,8 +17,7 @@
   import * as Table from '$lib/components/ui/table/index.js'
   import { Button } from '$lib/components/ui/button/index.js'
   import * as Select from '$lib/components/ui/select/index.js'
-  import { getUsersPageCombined } from '../data'
-  import { useServerQuery } from '../useServerQuery.svelte'
+  import { getUsersPageCombined } from '../queries.remote'
   import { useUrlSearch } from '../useUrlSearch.svelte'
   import type { User } from './columns'
 
@@ -26,19 +25,27 @@
 
   const PAGES_SIZE = ['10', '20', '30', '40', '50']
 
-  const { search, navigate } = useUrlSearch({
-    page: 0,
-    pageSize: 10,
-    role: '',
-    status: '',
-    sortBy: '',
-    sortDir: 'asc' as 'asc' | 'desc',
-  })
+  const { search, navigate } = useUrlSearch(
+    {
+      page: 0,
+      pageSize: 10,
+      role: '',
+      status: '',
+      sortBy: '',
+      sortDir: 'asc' as 'asc' | 'desc',
+    },
+    'combined',
+  )
 
-  const query = useServerQuery(
-    () => ({ ...search }),
-    getUsersPageCombined,
-    { rows: [], pageCount: 0 },
+  const response = $derived(
+    await getUsersPageCombined({
+      page: search.page,
+      pageSize: search.pageSize,
+      role: search.role,
+      status: search.status,
+      sortBy: search.sortBy,
+      sortDir: search.sortDir,
+    }),
   )
 
   // Sort state is derived from the URL, not local state — the URL stays the
@@ -50,13 +57,13 @@
   const table = createTable({
     features: v9Features,
     get data() {
-      return query.result.rows
+      return response.rows
     },
     get columns() {
       return columns
     },
     get pageCount() {
-      return query.result.pageCount
+      return response.pageCount
     },
     manualPagination: true,
     manualSorting: true,
@@ -127,7 +134,7 @@
   </div>
 
   <div
-    class={cn('overflow-hidden rounded-md border transition-opacity', query.isPending && 'opacity-50')}
+    class="overflow-hidden rounded-md border"
   >
     <Table.Root>
       <Table.Header>
@@ -190,16 +197,36 @@
   </div>
 
   <div class="mt-5 flex justify-end gap-1">
-    <Button variant="outline" disabled={!table.getCanPreviousPage()} onclick={() => table.firstPage()}>
+    <Button
+      variant="outline"
+      aria-label="First page"
+      disabled={!table.getCanPreviousPage()}
+      onclick={() => table.firstPage()}
+    >
       <ChevronsLeft class="h-3 w-3" />
     </Button>
-    <Button variant="outline" disabled={!table.getCanPreviousPage()} onclick={() => table.previousPage()}>
+    <Button
+      variant="outline"
+      aria-label="Previous page"
+      disabled={!table.getCanPreviousPage()}
+      onclick={() => table.previousPage()}
+    >
       <ChevronLeft class="h-3 w-3" />
     </Button>
-    <Button variant="outline" disabled={!table.getCanNextPage()} onclick={() => table.nextPage()}>
+    <Button
+      variant="outline"
+      aria-label="Next page"
+      disabled={!table.getCanNextPage()}
+      onclick={() => table.nextPage()}
+    >
       <ChevronRight class="h-3 w-3" />
     </Button>
-    <Button variant="outline" disabled={!table.getCanNextPage()} onclick={() => table.lastPage()}>
+    <Button
+      variant="outline"
+      aria-label="Last page"
+      disabled={!table.getCanNextPage()}
+      onclick={() => table.lastPage()}
+    >
       <ChevronsRight class="h-3 w-3" />
     </Button>
     <Select.Root

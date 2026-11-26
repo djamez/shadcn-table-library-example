@@ -12,12 +12,17 @@ type Primitive = string | number
  * over `page.url.searchParams` and `goto` — the tables only see `search` and
  * `navigate`.
  */
-export function useUrlSearch<T extends Record<string, Primitive>>(defaults: T) {
+export function useUrlSearch<T extends Record<string, Primitive>>(
+  defaults: T,
+  // Keeps several tables on one page from sharing the same query keys
+  prefix?: string,
+) {
+  const param = (key: string) => (prefix ? `${prefix}.${key}` : key)
   const read = (): T => {
     const params = new URLSearchParams(window.location.search)
     const next: Record<string, Primitive> = {}
     for (const [key, fallback] of Object.entries(defaults)) {
-      const raw = params.get(key)
+      const raw = params.get(param(key))
       next[key] =
         raw === null
           ? fallback
@@ -45,8 +50,9 @@ export function useUrlSearch<T extends Record<string, Primitive>>(defaults: T) {
     const url = new URL(window.location.href)
     for (const [key, fallback] of Object.entries(defaults)) {
       const value = next[key]
-      if (value === fallback || value === '') url.searchParams.delete(key)
-      else url.searchParams.set(key, String(value))
+      if (value === fallback || value === '')
+        url.searchParams.delete(param(key))
+      else url.searchParams.set(param(key), String(value))
     }
     window.history.pushState(null, '', url)
     sync()

@@ -151,6 +151,37 @@ check(
   `checked=${backendChecked} indeterminate=${backendIndeterminate}`,
 )
 
+// ssr: remote queries page and filter on the server
+await page.goto(`${BASE}/ssr`, { waitUntil: 'networkidle' })
+const ssrSection = (name) =>
+  page.locator('section').filter({
+    has: page.getByRole('heading', { name, exact: true }),
+  })
+const paginationSection = ssrSection('Pagination')
+const ssrFirstRow = () => paginationSection.locator('tbody tr').first().textContent()
+const ssrPageOne = await ssrFirstRow()
+await paginationSection.getByLabel('Next page').click()
+await page.waitForTimeout(1000)
+check(
+  'ssr remote query paginates',
+  (await ssrFirstRow()) !== ssrPageOne &&
+    new URL(page.url()).searchParams.has('pagination.page'),
+  page.url(),
+)
+
+const filterSection = ssrSection('Filter')
+await filterSection.getByRole('combobox').first().click()
+await page.getByRole('option', { name: 'Viewer' }).click()
+await page.waitForTimeout(1000)
+const filteredRows = await filterSection
+  .locator('tbody tr')
+  .evaluateAll((rows) => rows.map((row) => row.textContent))
+check(
+  'ssr remote query filters',
+  filteredRows.length > 0 && filteredRows.every((text) => text.includes('Viewer')),
+  `${filteredRows.length} rows`,
+)
+
 // column pinning: the pin button switches the column to a sticky position
 await page.goto(`${BASE}/column-pinning`, { waitUntil: 'networkidle' })
 const pinButton = page.getByLabel(/Pin Email column/).first()

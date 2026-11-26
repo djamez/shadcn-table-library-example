@@ -1,10 +1,11 @@
 import type { User } from './pagination-example/columns'
 
 /**
- * Stand-ins for your API. Each one does what a server would: filter, then
- * sort, then slice a page, and report how many pages the filtered set has.
- * The 400ms delay makes the loading state visible. In a real app these are
- * `fetch` calls (or Nuxt `useFetch` / `$fetch`) to your endpoints.
+ * Server-side data for the remote queries in `queries.remote.ts`. Each function
+ * filters, sorts and slices a page, and reports how many pages the filtered set
+ * has. The 400ms delay keeps the async update visible; in a real app these are
+ * database calls. Only the remote module imports this file, so it never ships
+ * to the browser.
  */
 const Users: User[] = [
   {
