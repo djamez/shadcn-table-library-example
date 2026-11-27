@@ -10,8 +10,10 @@
   const title = $derived(
     page.url.pathname === '/'
       ? 'Examples'
-      : (examples.find((example) => `/${example.slug}` === page.url.pathname)
-          ?.title ?? 'Examples'),
+      : page.url.pathname === '/tutorial'
+        ? 'Tutorial'
+        : (examples.find((example) => `/${example.slug}` === page.url.pathname)
+            ?.title ?? 'Examples'),
   )
 </script>
 
@@ -28,12 +30,24 @@
     <div class="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3">
       <a href="/" class="text-sm font-semibold">Shadcn Table</a>
       <span class="text-sm text-muted-foreground">Svelte 5 examples</span>
+      <a
+        href="/tutorial"
+        class="ml-auto rounded px-2 py-1 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
+      >
+        Tutorial
+      </a>
     </div>
   </header>
 
   <div class="mx-auto flex max-w-7xl gap-8 px-4 py-6">
     <aside class="hidden w-56 shrink-0 md:block">
       <nav class="sticky top-16 space-y-0.5 text-sm">
+        <a
+          class="mb-2 block rounded-md bg-muted px-2 py-1.5 font-medium text-foreground"
+          href="/tutorial"
+        >
+          Tutorial
+        </a>
         {#each examples as example (example.slug)}
           <a
             class="block rounded-md px-2 py-1.5 text-muted-foreground hover:bg-muted hover:text-foreground"

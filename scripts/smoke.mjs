@@ -37,6 +37,7 @@ const routes = [
   'tree-reorder',
   'tree-select',
   'utility',
+  'tutorial',
   'anomaly-investigation',
   'change-review',
   'cohort-retention',
@@ -73,7 +74,9 @@ for (const route of routes) {
   const rows = await page.locator('tbody tr').count()
   const isGallery = route === ''
   // These examples intentionally start with no rows
-  const mayBeEmpty = ['empty-state', 'error-state', 'loading-state'].includes(route)
+  const mayBeEmpty = ['empty-state', 'error-state', 'loading-state', 'tutorial'].includes(
+    route,
+  )
 
   if (status !== 200 || (!isGallery && !mayBeEmpty && rows === 0) || problems.length > 0) {
     failures += 1

@@ -257,6 +257,20 @@ check(
   `${crumbBefore?.trim()} -> ${(await crumbs.textContent())?.trim()}`,
 )
 
+// tutorial: every step and code block renders, and anchors navigate
+await page.goto(`${BASE}/tutorial`, { waitUntil: 'networkidle' })
+const tutorialSections = await page.locator('section[id]').count()
+const tutorialBlocks = await page.locator('pre').count()
+await page.locator('a[href="#grouping"]').click()
+await page.waitForTimeout(300)
+check(
+  'tutorial renders every step and anchors navigate',
+  tutorialSections >= 15 &&
+    tutorialBlocks >= 20 &&
+    new URL(page.url()).hash === '#grouping',
+  `${tutorialSections} sections, ${tutorialBlocks} code blocks`,
+)
+
 // column pinning: the pin button switches the column to a sticky position
 await page.goto(`${BASE}/column-pinning`, { waitUntil: 'networkidle' })
 const pinButton = page.getByLabel(/Pin Email column/).first()

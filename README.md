@@ -10,6 +10,11 @@ expansion, selection, editing and server-style flows as the React docs, running
 on TanStack Table v9's native Svelte adapter — no `@tanstack/table-core` and no
 custom adapter files.
 
+Start with **`/tutorial`**: a code-first walkthrough that builds one table from
+a plain HTML table to a server-driven table, one feature at a time. Every
+snippet is a complete component from `src/lib/tutorial` that the project
+type-checks.
+
 ## Stack
 
 - Svelte 5 (runes) + SvelteKit 3
@@ -55,9 +60,13 @@ src/
     examples/<example>/       one folder per example, same file layout as the
                               library's Svelte ports (demo, table, columns, cells)
     examples.remote.ts        prerender() catalog query for the shell/gallery
+    tutorial/                 one complete component per tutorial step, plus
+                              the data, search function and remote query
   routes/
     +layout.svelte            docs-style shell with a sidebar
     +page.svelte              gallery of all examples
+    tutorial/+page.svelte     the code-first tutorial (imports the step files
+                              with ?raw, so the snippets are the real sources)
     <example>/+page.svelte    renders that example's demo component
 scripts/
   smoke.mjs                   all-route SSR + console error check
@@ -78,6 +87,9 @@ scripts/
 - **Server** — SSR pagination, SSR filtering, SSR sort + filter + pagination
 - **Export** — Export Configuration, Export Selected, Density & Export
 - **Production Dashboard** — progress bars, conditional rules and sparklines
+- **Tutorial** — plain HTML table → `createTable` → formatting → sorting →
+  filtering → pagination → selection → editing → tree rows → visibility →
+  pinning → resizing → grouping → server-side search, filtering and pagination
 - **Previously v8-only** — Anomaly Investigation (metrics and finance),
   Change Review, Cohort Retention, CRM Employees, CRM Employees (multi-filter),
   CSV Import, Draft Rows, Empty / Error / Loading states, File Browser,
