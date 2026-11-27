@@ -151,6 +151,35 @@ check(
   `checked=${backendChecked} indeterminate=${backendIndeterminate}`,
 )
 
+// the reverse direction: check the parent first, then uncheck a child
+await page.goto(`${BASE}/tree-select`, { waitUntil: 'networkidle' })
+await checkboxAt('Backend').click()
+await page.waitForTimeout(250)
+const leavesChecked =
+  (await checkboxAt('Sofia Patel').getAttribute('aria-checked')) === 'true' &&
+  (await checkboxAt('Noah Garcia').getAttribute('aria-checked')) === 'true'
+await checkboxAt('Noah Garcia').click()
+await page.waitForTimeout(250)
+const parentMixedAfterChildUncheck =
+  (await checkboxAt('Backend').getAttribute('aria-checked')) === 'mixed'
+await checkboxAt('Noah Garcia').click()
+await page.waitForTimeout(250)
+const parentRechecked =
+  (await checkboxAt('Backend').getAttribute('aria-checked')) === 'true'
+await checkboxAt('Backend').click()
+await page.waitForTimeout(250)
+const leavesCleared =
+  (await checkboxAt('Sofia Patel').getAttribute('aria-checked')) === 'false' &&
+  (await checkboxAt('Noah Garcia').getAttribute('aria-checked')) === 'false'
+check(
+  'tree selection updates a parent-first cascade',
+  leavesChecked &&
+    parentMixedAfterChildUncheck &&
+    parentRechecked &&
+    leavesCleared,
+  `leaves=${leavesChecked} mixed=${parentMixedAfterChildUncheck} rechecked=${parentRechecked} cleared=${leavesCleared}`,
+)
+
 // ssr: remote queries page and filter on the server
 await page.goto(`${BASE}/ssr`, { waitUntil: 'networkidle' })
 const ssrSection = (name) =>

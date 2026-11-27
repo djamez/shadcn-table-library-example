@@ -29,7 +29,10 @@ export const columns: ColumnDef<V9Features, OrgNode>[] = [
       return renderComponent(SelectCheckbox, {
         checked,
         indeterminate: !checked && row.getIsSomeSelected(),
-        onchange: (value) => row.toggleSelected(value),
+        // A parent cascade writes the parent id into selection state; drop
+        // ancestors when a child is deselected so the parent derives again
+        onchange: (value) =>
+          row.toggleSelected(value, { deselectParents: true }),
         label: 'Select row',
       })
     },
